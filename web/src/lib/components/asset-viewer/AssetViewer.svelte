@@ -45,6 +45,7 @@
   import Thumbnail from '../assets/thumbnail/Thumbnail.svelte';
   import ActivityStatus from './ActivityStatus.svelte';
   import ActivityViewer from './ActivityViewer.svelte';
+  import { detailSections } from '$lib/extensions/ui-extension-points.svelte';
   import DetailPanel from './DetailPanel.svelte';
   import EditorPanel from './editor/EditorPanel.svelte';
   import CropArea from './editor/transform-tool/CropArea.svelte';
@@ -109,6 +110,8 @@
   const asset = $derived(previewStackedAsset ?? cursor.current);
   const nextAsset = $derived(cursor.nextAsset);
   const previousAsset = $derived(cursor.previousAsset);
+  const isOwner = $derived(authManager.authenticated && authManager.user?.id === asset.ownerId);
+  const belowViewerSections = $derived(detailSections('asset.viewer.below', { asset, isOwner }));
   let sharedLink = getSharedLink();
   let fullscreenElement = $state<Element>();
 
@@ -609,6 +612,16 @@
 
     {#if $slideshowState !== SlideshowState.None}
       <SlideshowMetadataOverlay {asset} />
+    {/if}
+
+    <!-- Extension point: content below the main image (e.g. comments tester). -->
+    {#if $slideshowState === SlideshowState.None && belowViewerSections.length > 0}
+      <div class="pointer-events-auto absolute inset-x-0 bottom-0 z-20 max-h-[45%] overflow-y-auto">
+        {#each belowViewerSections as section (section.id)}
+          {@const Comp = section.component}
+          <Comp {asset} {isOwner} {...section.props} />
+        {/each}
+      </div>
     {/if}
   </div>
 

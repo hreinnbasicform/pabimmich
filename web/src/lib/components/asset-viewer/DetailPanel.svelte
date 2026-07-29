@@ -33,6 +33,7 @@
   import UserAvatar from '../shared-components/UserAvatar.svelte';
   import AlbumListItemDetails from './AlbumListItemDetails.svelte';
   import DetailPanelPeople from '$lib/components/asset-viewer/DetailPanelPeople.svelte';
+  import { detailSections } from '$lib/extensions/ui-extension-points.svelte';
   import { faceManager } from '$lib/stores/face.svelte';
 
   interface Props {
@@ -43,6 +44,9 @@
   let { asset, currentAlbum = null }: Props = $props();
 
   let isOwner = $derived(authManager.authenticated && authManager.user.id === asset.ownerId);
+  const midDetailSections = $derived(detailSections('asset.detail.section', { asset, isOwner }));
+  const beforeTagsSections = $derived(detailSections('asset.detail.before-tags', { asset, isOwner }));
+  const afterMapSections = $derived(detailSections('asset.detail.after-map', { asset, isOwner }));
   let latlng = $derived(
     (() => {
       const lat = asset.exifInfo?.latitude;
@@ -153,6 +157,11 @@
     <DetailPanelDescription {asset} {isOwner} />
     <DetailPanelRating {asset} {isOwner} />
     <DetailPanelPeople {asset} {isOwner} {previousRoute} />
+
+    {#each midDetailSections as section (section.id)}
+      {@const Comp = section.component}
+      <Comp {asset} {isOwner} {...section.props} />
+    {/each}
 
     <div class="p-4">
       {#if asset.exifInfo}
@@ -324,6 +333,12 @@
     </div>
   {/if}
 
+  <!-- Extension point: right panel after the map (e.g. image title override). -->
+  {#each afterMapSections as section (section.id)}
+    {@const Comp = section.component}
+    <Comp {asset} {isOwner} {...section.props} />
+  {/each}
+
   {#if currentAlbum && currentAlbum.albumUsers.length > 1 && asset.owner}
     <section class="mt-4 px-6 dark:text-immich-dark-fg">
       <Text size="small" color="muted">{$t('shared_by')}</Text>
@@ -376,6 +391,10 @@
   {/await}
 
   {#if authManager.authenticated && authManager.preferences.tags.enabled}
+    {#each beforeTagsSections as section (section.id)}
+      {@const Comp = section.component}
+      <Comp {asset} {isOwner} {...section.props} />
+    {/each}
     <section class="relative px-2 pb-12 dark:bg-immich-dark-bg dark:text-immich-dark-fg">
       <DetailPanelTags {asset} {isOwner} />
     </section>
