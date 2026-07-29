@@ -2,7 +2,7 @@
   import { authManager } from '$lib/managers/auth-manager.svelte';
   import { serverConfigManager } from '$lib/managers/server-config-manager.svelte';
   import { OnboardingRole } from '$lib/types';
-  import { Logo } from '@immich/ui';
+  import AppLogo from '$lib/components/shared-components/AppLogo.svelte';
   import { t } from 'svelte-i18n';
 
   let userRole = $derived(
@@ -11,7 +11,7 @@
 </script>
 
 <div class="gap-4">
-  <Logo variant="icon" size="giant" class="mb-2" />
+  <AppLogo variant="icon" size="giant" class="mb-2" />
   <p class="mb-6 text-6xl font-medium text-primary">
     {$t('onboarding_welcome_user', { values: { user: authManager.user.name } })}
   </p>

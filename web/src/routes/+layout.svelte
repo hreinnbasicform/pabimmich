@@ -2,12 +2,9 @@
   import { afterNavigate, beforeNavigate } from '$app/navigation';
   import { page } from '$app/state';
   import { getPagesProvider, getSettingsProvider } from '$lib/commands';
-  import DownloadPanel from './DownloadPanel.svelte';
-  import ErrorLayout from './ErrorLayout.svelte';
   import OnEvents from '$lib/components/OnEvents.svelte';
-  import NavigationLoadingBar from './NavigationLoadingBar.svelte';
-  import UploadPanel from './UploadPanel.svelte';
-  import VersionAnnouncement from './VersionAnnouncement.svelte';
+  import BrandingHead from '$lib/components/shared-components/BrandingHead.svelte';
+  import '$lib/extensions';
   import { authManager } from '$lib/managers/auth-manager.svelte';
   import { eventManager } from '$lib/managers/event-manager.svelte';
   import { serverConfigManager } from '$lib/managers/server-config-manager.svelte';
@@ -18,6 +15,11 @@
   import { closeWebsocketConnection, openWebsocketConnection, websocketStore } from '$lib/stores/websocket';
   import { maintenanceShouldRedirect } from '$lib/utils/maintenance';
   import { getServerConfig } from '@immich/sdk';
+  import DownloadPanel from './DownloadPanel.svelte';
+  import ErrorLayout from './ErrorLayout.svelte';
+  import NavigationLoadingBar from './NavigationLoadingBar.svelte';
+  import UploadPanel from './UploadPanel.svelte';
+  import VersionAnnouncement from './VersionAnnouncement.svelte';
   import {
     CommandPaletteProvider,
     CORE_PAGE_COMMANDS,
@@ -231,6 +233,7 @@
 </script>
 
 <OnEvents {onWebsocketConnect} />
+<BrandingHead />
 
 <VersionAnnouncement />
 
