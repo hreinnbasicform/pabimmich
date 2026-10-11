@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "note": "Host-mounted override for Immich branding (no web rebuild). Copied next to site-scripts. Prefer /pab-ui/theme-branding.json over /theme-branding.json when present.",
+  "follow_theme": true,
+  "logo_style": "dark",
+  "styles": {
+    "dark": {
+      "label": "Dark UI — white monogram",
+      "logoIcon": "/pab-ui/brand/logo-c-aperture-p_white.svg",
+      "logoInline": "/pab-ui/brand/logo-c-aperture-p_white.svg",
+      "logoBackdrop": "/pab-ui/brand/logo-c-aperture-p_white.svg",
+      "favicon": "/pab-ui/brand/logo-c-aperture-p_white.ico",
+      "favicons": {
+        "ico": "/pab-ui/brand/logo-c-aperture-p_white.ico",
+        "png": "/pab-ui/brand/logo-c-aperture-p_white.png"
+      }
+    },
+    "light": {
+      "label": "Light UI — color monogram on transparent (favicon always white-fill logo)",
+      "logoIcon": "/pab-ui/brand/logo-c-aperture-p_transparent.svg",
+      "logoInline": "/pab-ui/brand/logo-c-aperture-p_transparent.svg",
+      "logoBackdrop": "/pab-ui/brand/logo-c-aperture-p_transparent.svg",
+      "favicon": "/pab-ui/brand/logo-c-aperture-p_white.ico",
+      "favicons": {
+        "ico": "/pab-ui/brand/logo-c-aperture-p_white.ico",
+        "png": "/pab-ui/brand/logo-c-aperture-p_white.png"
+      }
+    }
+  }
+}

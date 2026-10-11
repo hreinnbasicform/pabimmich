@@ -419,7 +419,10 @@ export const defaults = Object.freeze<SystemConfig>({
   server: {
     externalDomain: '',
     loginPageMessage: '',
-    publicUsers: true,
+    // PAB: shared Immich instance — publicUsers=true lets any tenant list every
+    // other tenant's email via GET /api/users + album "Invite People" (ALB-USERS / FIX8).
+    // Keep false so non-admins only see themselves. Admin listing still works.
+    publicUsers: false,
   },
   notifications: {
     smtp: {

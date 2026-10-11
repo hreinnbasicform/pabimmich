@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-Q0R7L2RJKH"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-Q0R7L2RJKH');
+</script>
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Abbot — PhotoAppBackend</title>
+<style>
+  :root {
+    --bg: #0b0d12; --panel: #141824; --line: #2a3144; --text: #eef0f6; --muted: #8b93a7;
+    --violet: #6C4DFF; --cyan: #22D3EE; --ok: #34d399; --err: #f87171;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: ui-sans-serif, system-ui, sans-serif; background: var(--bg); color: var(--text);
+    display: flex; flex-direction: column;
+  }
+  header {
+    display: flex; align-items: center; gap: .75rem; flex-wrap: wrap;
+    padding: .65rem 1rem; border-bottom: 1px solid var(--line); background: var(--panel);
+  }
+  header h1 { margin: 0; font-size: 1rem; font-weight: 700; }
+  header a { color: var(--muted); text-decoration: none; font-size: .88rem; }
+  header a:hover { color: var(--text); }
+  .chip {
+    margin-left: auto; font-size: .78rem; font-weight: 700; padding: .15rem .55rem; border-radius: 999px;
+    background: linear-gradient(100deg, var(--violet), var(--cyan)); color: #fff;
+  }
+  .status {
+    font-size: .78rem; padding: .35rem .85rem; border-bottom: 1px solid var(--line);
+    background: rgba(0,0,0,.25); color: var(--muted);
+  }
+  .status.ok { color: var(--ok); }
+  .status.err { color: var(--err); background: rgba(248,113,113,.08); }
+  .status.warn { color: #e6b84d; background: rgba(230,184,77,.08); }
+  iframe { flex: 1; width: 100%; border: 0; background: #0f1117; min-height: 0; }
+</style>
+</head>
+<body>
+<header>
+  <a href="/photos">← Photos</a>
+  <h1>Abbot</h1>
+  <a href="/pab-ui/site-settings.html">Site settings</a>
+  <span class="chip" id="siteChip">—</span>
+</header>
+<div class="status" id="status">Connecting…</div>
+<iframe id="frame" title="Abbot" src="/abbot/?embed=1" allow="clipboard-write"></iframe>
+<script>
+(function () {
+  function tenantFromHost() {
+    var parts = (location.hostname || '').toLowerCase().split('.').filter(Boolean);
+    if (parts.length < 3) return '';
+    var sub = parts[0];
+    if (['www','api','padmin','admin','app'].indexOf(sub) >= 0) return '';
+    return sub;
+  }
+  function apiBase() {
+    return tenantFromHost() ? location.origin + '/pab-api' : location.origin;
+  }
+  function tenant() {
+    return localStorage.getItem('pab_tenant') || window.__PAB_SITENAME__ || tenantFromHost() || '';
+  }
+  function setStatus(text, cls) {
+    var el = document.getElementById('status');
+    el.className = 'status' + (cls ? ' ' + cls : '');
+    el.textContent = text;
+  }
+  async function ensureAuth() {
+    var t = tenant();
+    document.getElementById('siteChip').textContent = t || '—';
+    if (!t) {
+      setStatus('Open this page on a site host (e.g. yoursite.pab-test.example.invalid).', 'err');
+      return null;
+    }
+    localStorage.setItem('pab_tenant', t);
+    localStorage.setItem('pab_api_base', apiBase());
+    var tok = localStorage.getItem('pab_passport') || '';
+    var exp = parseInt(localStorage.getItem('pab_web_exp') || '0', 10);
+    if (tok && (!tok.startsWith('pabw.') || exp > Date.now() / 1000 + 60)) return tok;
+    var res = await fetch(apiBase() + '/web-auth', {
+      method: 'GET', credentials: 'include', cache: 'no-store',
+      headers: { Accept: 'application/json', 'X-Tenant': t },
+    });
+    var data = await res.json().catch(function () { return {}; });
+    if (!res.ok || !data.token) {
+      setStatus((data && data.error) || 'Sign in to Immich first (web-auth failed).', 'err');
+      return null;
+    }
+    localStorage.setItem('pab_passport', data.token);
+    if (data.expires_at) {
+      localStorage.setItem('pab_web_exp', String(Math.floor(new Date(data.expires_at).getTime() / 1000)));
+    }
+    if (data.tenant) localStorage.setItem('pab_tenant', data.tenant);
+    return data.token;
+  }
+  async function probeAbbot(passport) {
+    var t = tenant();
+    try {
+      var cfg = await fetch('/abbot/api/config', { credentials: 'same-origin', cache: 'no-store' });
+      if (!cfg.ok) {
+        setStatus('Abbot proxy not reachable (HTTP ' + cfg.status + ').', 'err');
+        return;
+      }
+      var c = await cfg.json();
+      if (passport) {
+        await fetch('/abbot/api/bind', {
+          method: 'POST', credentials: 'same-origin',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Tenant': t,
+            'X-Auth-Key': passport,
+          },
+          body: JSON.stringify({ site: t, auth_key: passport }),
+        });
+      }
+      setStatus(
+        'Bound to site “' + t + '” · model ' + (c.model || '—') + ' · tools ' + ((c.tools || []).length) +
+        ' · chat needs a valid OPENAI_API_KEY on the server',
+        'ok'
+      );
+    } catch (e) {
+      setStatus('Abbot error: ' + (e.message || e), 'err');
+    }
+  }
+  ensureAuth().then(function (tok) {
+    if (tok) probeAbbot(tok);
+  }).catch(function (e) {
+    setStatus(String(e.message || e), 'err');
+  });
+})();
+</script>
+</body>
+</html>

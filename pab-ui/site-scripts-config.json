@@ -1,0 +1,7 @@
+{
+  "enabled": true,
+  "gtagId": "G-Q0R7L2RJKH",
+  "header": [],
+  "footer": [],
+  "note": "Host-mounted overrides for Immich. Edit this file (or set window.__PAB_SITE_SCRIPTS_OVERRIDE__ before load) without rebuilding Immich. header[] injects into <head>, footer[] at end of <body>. Each item: { id, src?, html?, async?, defer?, type? } or { id, type: 'gtag', gtagId? }."
+}

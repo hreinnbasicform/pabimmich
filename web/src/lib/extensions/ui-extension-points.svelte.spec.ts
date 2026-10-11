@@ -1,10 +1,15 @@
 import {
   activeBranding,
+  activeUserSettingsVisibility,
   brandingLogoSrc,
   contribute,
   contributions,
+  isUserSettingsSectionVisible,
   setAppBranding,
+  setUserSettingsVisibility,
+  userSettingsSections,
 } from '$lib/extensions/ui-extension-points.svelte';
+import type { Component } from 'svelte';
 
 describe('ui-extension-points', () => {
   it('registers, replaces by id, and unregisters sidebar nav items', () => {
@@ -88,5 +93,89 @@ describe('ui-extension-points', () => {
     expect(brandingLogoSrc('backdrop')).toBe('/only-icon.png');
 
     unregister();
+  });
+
+  it('user settings visibility defaults to all-visible with no policy', () => {
+    // Isolate: any leftover policies from other tests should not apply
+    const policy = activeUserSettingsVisibility();
+    if (!policy || policy.id.startsWith('test-')) {
+      expect(isUserSettingsSectionVisible('account')).toBe(true);
+      expect(isUserSettingsSectionVisible('user-purchase-settings')).toBe(true);
+    }
+  });
+
+  it('hideByDefault only shows explicitly allowed sections', () => {
+    const unregister = setUserSettingsVisibility({
+      id: 'test-bare-min',
+      order: 500,
+      hideByDefault: true,
+      sections: {
+        account: true,
+        password: true,
+        'user-purchase-settings': false,
+      },
+    });
+
+    expect(activeUserSettingsVisibility()?.id).toBe('test-bare-min');
+    expect(isUserSettingsSectionVisible('account')).toBe(true);
+    expect(isUserSettingsSectionVisible('password')).toBe(true);
+    expect(isUserSettingsSectionVisible('user-purchase-settings')).toBe(false);
+    expect(isUserSettingsSectionVisible('api-keys')).toBe(false);
+    expect(isUserSettingsSectionVisible('feature')).toBe(false);
+
+    unregister();
+  });
+
+  it('opt-out visibility only hides sections set to false', () => {
+    const unregister = setUserSettingsVisibility({
+      id: 'test-opt-out',
+      order: 510,
+      hideByDefault: false,
+      sections: {
+        'user-purchase-settings': false,
+      },
+    });
+
+    expect(isUserSettingsSectionVisible('account')).toBe(true);
+    expect(isUserSettingsSectionVisible('user-purchase-settings')).toBe(false);
+    expect(isUserSettingsSectionVisible('api-keys')).toBe(true);
+
+    unregister();
+  });
+
+  it('higher-order visibility policy wins', () => {
+    const u1 = setUserSettingsVisibility({
+      id: 'test-vis-low',
+      order: 1,
+      hideByDefault: true,
+      sections: { account: true },
+    });
+    const u2 = setUserSettingsVisibility({
+      id: 'test-vis-high',
+      order: 999,
+      hideByDefault: false,
+      sections: { 'user-purchase-settings': false },
+    });
+
+    expect(activeUserSettingsVisibility()?.id).toBe('test-vis-high');
+    expect(isUserSettingsSectionVisible('api-keys')).toBe(true);
+    expect(isUserSettingsSectionVisible('user-purchase-settings')).toBe(false);
+
+    u2();
+    u1();
+  });
+
+  it('registers extra user.settings.section contributions', () => {
+    const Dummy = {} as Component<Record<string, never>>;
+    const unregister = contribute('user.settings.section', {
+      id: 'test-extra-section',
+      title: 'Extra',
+      order: 5,
+      component: Dummy,
+    });
+
+    expect(userSettingsSections().find((s) => s.id === 'test-extra-section')?.title).toBe('Extra');
+    unregister();
+    expect(userSettingsSections().find((s) => s.id === 'test-extra-section')).toBeUndefined();
   });
 });

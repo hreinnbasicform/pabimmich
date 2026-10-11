@@ -23,7 +23,9 @@ services:
     env_file:
       - .env
     ports:
-      - '2283:2283'
+      # PAB: bind to loopback only — nginx proxies Immich locally, so it must not be
+      # published on 0.0.0.0 (Docker's iptables bypasses ufw).
+      - '127.0.0.1:2283:2283'
     depends_on:
       - redis
       - database

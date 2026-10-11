@@ -1,6 +1,6 @@
 {
   "background_color": "#ffffff",
-  "description": "Self-hosted photo and video backup solution directly from your mobile phone.",
+  "description": "Your private, multi-tenant photo backend — powered by PhotoAppBackend.",
   "dir": "auto",
   "display": "standalone",
   "icons": [
@@ -24,8 +24,8 @@
     }
   ],
   "lang": "en",
-  "name": "Immich",
-  "short_name": "Immich",
+  "name": "PhotoAppBackend",
+  "short_name": "PhotoAppBackend",
   "shortcuts": [
     {
       "name": "Photos",

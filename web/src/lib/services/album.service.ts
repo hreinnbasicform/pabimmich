@@ -52,10 +52,14 @@ export const getAlbumActions = ($t: MessageFormatter, album: AlbumResponseDto) =
     onAction: () => modalManager.show(AlbumOptionsModal, { album }),
   };
 
+  // PAB (FIX8 / ALB-USERS): one Immich identity per tenant on a shared instance.
+  // Invite People + GET /api/users would enumerate other tenants' emails.
+  // Access is via PAB r/i/m/d + public shared links — never Immich user-to-user invite.
   const AddUsers: ActionItem = {
     title: $t('invite_people'),
     icon: mdiPlus,
     color: 'primary',
+    $if: () => false,
     onAction: () => modalManager.show(AlbumAddUsersModal, { album }),
   };
 

@@ -1,0 +1,7 @@
+{
+  "version": "v10-comment-ledger",
+  "scripts": ["site-scripts.js", "asset-comments-v4.js", "asset-preset-tags.js"],
+  "pages": ["site-settings.html", "abbot.html"],
+  "config": ["site-scripts-config.json"],
+  "note": "v10: click comment → user ledger; v9 preset tags; v8 site-scripts"
+}

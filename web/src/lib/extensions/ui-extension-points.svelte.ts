@@ -103,6 +103,55 @@ export type AssetDetailPoint =
   | 'asset.detail.after-map'
   | 'asset.viewer.below';
 
+/**
+ * Core Account Settings accordion keys (UserSettingsList.svelte).
+ * Extensions may also use custom ids for contributed sections.
+ */
+export type UserSettingsSectionKey =
+  | 'app-settings'
+  | 'account'
+  | 'user-usage-info'
+  | 'api-keys'
+  | 'authorized-devices'
+  | 'download-settings'
+  | 'feature'
+  | 'notifications'
+  | 'oauth'
+  | 'password'
+  | 'partner-sharing'
+  | 'user-pin-code-settings'
+  | 'user-purchase-settings'
+  | (string & {});
+
+/**
+ * Visibility policy for Account Settings sections.
+ * Highest `order` among gated contributions wins (same as branding).
+ *
+ * - Default (no contributions): every core section is shown (stock Immich).
+ * - `hideByDefault: true`: only sections explicitly set `true` in `sections` are shown.
+ * - `hideByDefault` false/omitted: only sections set `false` are hidden; rest stay shown.
+ */
+export interface UserSettingsVisibility {
+  id: string;
+  order?: number;
+  when?: () => boolean;
+  hideByDefault?: boolean;
+  sections?: Partial<Record<UserSettingsSectionKey, boolean>>;
+}
+
+/** Extra accordion section contributed into Account Settings (e.g. Site settings link). */
+export interface UserSettingsSection {
+  id: string;
+  order?: number;
+  when?: () => boolean;
+  title: string;
+  subtitle?: string;
+  icon?: string;
+  /** Svelte component rendered inside the accordion body. */
+  component: Component<Record<string, never>>;
+  props?: Record<string, unknown>;
+}
+
 /** The set of extension points and their item types. Extend this as new slots are added. */
 interface ExtensionPointMap {
   'sidebar.nav': SidebarNavItem;
@@ -115,6 +164,10 @@ interface ExtensionPointMap {
   'asset.detail.after-map': AssetDetailSection;
   /** Overlay / panel rendered below the main asset image in the viewer. */
   'asset.viewer.below': AssetDetailSection;
+  /** Account Settings visibility policy (highest order wins). */
+  'user.settings.visibility': UserSettingsVisibility;
+  /** Extra Account Settings accordion sections. */
+  'user.settings.section': UserSettingsSection;
 }
 type PointName = keyof ExtensionPointMap;
 
@@ -126,6 +179,8 @@ const registry = $state<{ [K in PointName]: ExtensionPointMap[K][] }>({
   'asset.detail.before-tags': [],
   'asset.detail.after-map': [],
   'asset.viewer.below': [],
+  'user.settings.visibility': [],
+  'user.settings.section': [],
 });
 
 /** Register a contribution to an extension point. Idempotent on `id`. Returns an unregister fn. */
@@ -195,4 +250,39 @@ export function brandingLogoSrc(variant: 'icon' | 'inline' | 'backdrop'): string
     return branding.logoInline ?? branding.logoIcon;
   }
   return branding.logoIcon ?? branding.logoInline;
+}
+
+/**
+ * Active Account Settings visibility policy (highest order among gated items).
+ * No contribution ⇒ stock Immich (all core sections visible).
+ */
+export function activeUserSettingsVisibility(): UserSettingsVisibility | undefined {
+  const items = contributions('user.settings.visibility');
+  return items.at(-1);
+}
+
+/**
+ * Whether a core Account Settings accordion should render.
+ * Extensions opt into bare-minimum via `hideByDefault` + allow-list.
+ */
+export function isUserSettingsSectionVisible(key: UserSettingsSectionKey): boolean {
+  const policy = activeUserSettingsVisibility();
+  if (!policy) {
+    return true;
+  }
+  const override = policy.sections?.[key];
+  if (typeof override === 'boolean') {
+    return override;
+  }
+  return policy.hideByDefault ? false : true;
+}
+
+/** Convenience alias for `contribute('user.settings.visibility', …)`. */
+export function setUserSettingsVisibility(policy: UserSettingsVisibility) {
+  return contribute('user.settings.visibility', policy);
+}
+
+/** Extra Account Settings sections (sorted, `when`-gated). */
+export function userSettingsSections(): UserSettingsSection[] {
+  return contributions('user.settings.section');
 }

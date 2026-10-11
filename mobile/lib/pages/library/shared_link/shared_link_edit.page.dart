@@ -132,10 +132,10 @@ class SharedLinkEditPage extends HookConsumerWidget {
         textInputAction: TextInputAction.done,
         autofocus: false,
         decoration: InputDecoration(
-          labelText: slugController.text.isNotEmpty ? context.t.shared_link_custom_url_title : null,
+          labelText: slugController.text.isNotEmpty ? context.t.custom_url : null,
           labelStyle: const TextStyle(fontWeight: FontWeight.bold),
           border: const OutlineInputBorder(),
-          hintText: context.t.shared_link_custom_url_title,
+          hintText: context.t.custom_url,
           prefixText: slugController.text.isNotEmpty ? '/s/' : null,
           prefixStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),

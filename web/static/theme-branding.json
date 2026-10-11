@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "note": "PAB logo theme config. logo_style is the default when follow_theme is false. When follow_theme is true, Immich light/dark theme picks styles.light / styles.dark. Default style is dark (white logo) for dark UI.",
+  "follow_theme": true,
+  "logo_style": "dark",
+  "styles": {
+    "dark": {
+      "label": "Dark UI — white monogram",
+      "logoIcon": "/brand/logo-c-aperture-p_white.svg",
+      "logoInline": "/brand/logo-c-aperture-p_white.svg",
+      "logoBackdrop": "/brand/logo-c-aperture-p_white.svg",
+      "favicon": "/brand/logo-c-aperture-p_white.ico",
+      "favicons": {
+        "ico": "/brand/logo-c-aperture-p_white.ico",
+        "png": "/brand/logo-c-aperture-p_white.png"
+      }
+    },
+    "light": {
+      "label": "Light UI — color monogram on transparent (favicon always white-fill logo)",
+      "logoIcon": "/brand/logo-c-aperture-p_transparent.svg",
+      "logoInline": "/brand/logo-c-aperture-p_transparent.svg",
+      "logoBackdrop": "/brand/logo-c-aperture-p_transparent.svg",
+      "favicon": "/brand/logo-c-aperture-p_white.ico",
+      "favicons": {
+        "ico": "/brand/logo-c-aperture-p_white.ico",
+        "png": "/brand/logo-c-aperture-p_white.png"
+      }
+    }
+  }
+}

@@ -1,5 +1,9 @@
 import { isHttpError, type ApiHttpError } from '@immich/sdk';
 import type { HandleClientError } from '@sveltejs/kit';
+import { initPabErrorReporter, reportPabError } from '$lib/utils/pab-error-reporter';
+
+// PAB: report uncaught JS errors + unhandled rejections to the orchestrator.
+initPabErrorReporter();
 
 const DEFAULT_MESSAGE = 'Hmm, not sure about that. Check the logs or open a ticket?';
 
@@ -33,5 +37,7 @@ const parseError = (error: unknown, status: number, message: string) => {
 export const handleError: HandleClientError = ({ error, status, message }) => {
   const result = parseError(error, status, message);
   console.error(`[hooks.client.ts]:handleError ${result.message}`, error);
+  // PAB: forward render/navigation errors to the orchestrator (best-effort).
+  reportPabError({ kind: 'error', message: result.message, stack: (error as Error)?.stack, source: 'hooks.client' });
   return result;
 };

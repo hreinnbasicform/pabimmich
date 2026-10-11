@@ -50,7 +50,7 @@
       formTenant = cfg.tenant;
       // do not prefill passport into the input for safety
     } else {
-      formBase = String(import.meta.env.VITE_PAB_API_BASE || 'http://127.0.0.1:8100');
+      formBase = String(import.meta.env.VITE_PAB_API_BASE || `${window.location.origin}/pab-api`);
       formTenant = String(import.meta.env.VITE_PAB_TENANT || '');
     }
     void load();

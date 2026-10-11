@@ -77,8 +77,15 @@
         }}
         class="sidebar:hidden"
       />
-      <a data-sveltekit-preload-data="hover" href={Route.photos()}>
-        <AppLogo variant={mediaQueryManager.isFullSidebar ? 'inline' : 'icon'} class="max-md:h-12" />
+      <!-- PAB: AppLogo honours app.branding extension; site name stays a small hard edit. -->
+      <a data-sveltekit-preload-data="hover" href={Route.photos()} class="flex items-center gap-2 max-md:h-12">
+        <AppLogo variant={mediaQueryManager.isFullSidebar ? 'inline' : 'icon'} class="max-md:h-12" alt="PhotoAppBackend" />
+        {#if authManager.user?.name}
+          <span class="hidden flex-col leading-tight sm:flex">
+            <span class="text-base font-bold">{authManager.user.name}</span>
+            <span class="text-[10px] opacity-60">photoappbackend.com</span>
+          </span>
+        {/if}
       </a>
     </div>
     <div class="flex justify-between gap-4 pe-6 lg:gap-8">

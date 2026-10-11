@@ -9,7 +9,7 @@ export const load = (async ({ url }) => {
   return {
     tags,
     meta: {
-      title: 'Animals',
+      title: 'Cats',
     },
   };
 }) satisfies PageLoad;

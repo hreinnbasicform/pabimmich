@@ -29,9 +29,12 @@
       }),
   );
 
-  const byType = $derived.by(() => {
+  // Prefer cats first (CatLink); other animal types still listed for multi-species sites
+  const cats = $derived(animals.filter((e) => e.identity.type.toLowerCase() === 'cat'));
+  const otherByType = $derived.by(() => {
     const map = new Map<string, typeof animals>();
     for (const entry of animals) {
+      if (entry.identity.type.toLowerCase() === 'cat') continue;
       const list = map.get(entry.identity.type) ?? [];
       list.push(entry);
       map.set(entry.identity.type, list);
@@ -40,19 +43,42 @@
   });
 </script>
 
-<UserPageLayout title="Animals">
-  <div class="m-auto w-full max-w-3xl p-4">
+<UserPageLayout title="Cats">
+  <div class="m-auto w-full max-w-3xl p-4" data-testid="page-cats">
     <Text color="muted" class="mb-4 block">
-      Animals are stored as hierarchical tags (<code>Animals/Type/Name</code>) so George the cat and George the dog can
-      both appear on the same photo. No ML — tag them from the asset info panel.
+      Community cats are stored as tags (<code>Animals/Cat/Name</code>) — pick from the list on a photo, no face ML yet.
+      Name a cat once; reuse it on every sighting.
     </Text>
 
-    {#if animals.length === 0}
-      <p class="opacity-70">No animals yet. Open a photo → Info → Animals, then add a type and name.</p>
+    {#if cats.length === 0 && otherByType.length === 0}
+      <p class="opacity-70">
+        No cats yet. Open a photo → Info → <strong>Cats</strong>, then pick an existing name or add a new one.
+      </p>
     {:else}
-      {#each byType as [type, entries] (type)}
+      <section class="mb-6">
+        <h2 class="mb-2 text-lg font-semibold">Cats ({cats.length})</h2>
+        {#if cats.length === 0}
+          <p class="opacity-70 text-sm">No cat tags yet.</p>
+        {:else}
+          <ul class="grid gap-2 sm:grid-cols-2">
+            {#each cats as { tag, identity } (tag.id)}
+              <li>
+                <Link
+                  href={Route.tags({ path: tag.value })}
+                  class="block rounded-lg border border-gray-200 px-3 py-2 hover:border-primary dark:border-gray-700"
+                  data-testid={`cat-card-${identity.name}`}
+                >
+                  {identity.name}
+                </Link>
+              </li>
+            {/each}
+          </ul>
+        {/if}
+      </section>
+
+      {#each otherByType as [type, entries] (type)}
         <section class="mb-6">
-          <h2 class="mb-2 text-lg font-semibold">{type}</h2>
+          <h2 class="mb-2 text-lg font-semibold opacity-80">{type}</h2>
           <ul class="grid gap-2 sm:grid-cols-2">
             {#each entries as { tag, identity } (tag.id)}
               <li>

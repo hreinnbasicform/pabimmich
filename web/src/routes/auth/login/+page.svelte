@@ -8,7 +8,7 @@
   import { oauth } from '$lib/utils';
   import { getServerErrorMessage, handleError } from '$lib/utils/handle-error';
   import { login, type LoginResponseDto } from '@immich/sdk';
-  import { Alert, Button, Field, Input, PasswordInput, Stack } from '@immich/ui';
+  import { Alert, Button, Field, Input, PasswordInput, Stack, Text } from '@immich/ui';
   import { onMount } from 'svelte';
   import { t } from 'svelte-i18n';
   import type { PageData } from './$types';
@@ -27,6 +27,7 @@
   let oauthLoading = $state(true);
 
   const serverConfig = $derived(serverConfigManager.value);
+  const siteName = $derived(data.siteName || '');
 
   const onSuccess = async (user: LoginResponseDto) => {
     await goto(data.continueUrl, { invalidateAll: true });
@@ -37,6 +38,13 @@
   const onOnboarding = () => goto(Route.onboarding());
 
   onMount(async () => {
+    // Mark form fields for password managers after mount (Svelte re-renders covered by attrs)
+    if (typeof document !== 'undefined') {
+      document.title = siteName
+        ? `Sign in to ${siteName} — PhotoAppBackend`
+        : 'Login - PhotoAppBackend';
+    }
+
     if (!featureFlagsManager.value.oauth) {
       oauthLoading = false;
       return;
@@ -128,6 +136,20 @@
 
 <AuthPageLayout title={data.meta.title}>
   <Stack gap={4}>
+    {#if siteName}
+      <div
+        class="mb-2 rounded-xl border border-immich-primary/30 bg-immich-primary/10 px-4 py-3 text-center dark:border-immich-dark-primary/40 dark:bg-immich-dark-primary/10"
+        data-pab-site-banner
+        role="status"
+        aria-label="Signing in to site {siteName}"
+      >
+        <Text size="small" class="uppercase tracking-wide opacity-70">Signing in to</Text>
+        <div class="mt-0.5 text-xl font-bold tracking-tight text-immich-primary dark:text-immich-dark-primary">
+          {siteName}
+        </div>
+      </div>
+    {/if}
+
     {#if serverConfig.loginPageMessage}
       <Alert color="primary" class="mb-6">
         <!-- eslint-disable-next-line svelte/no-at-html-tags -->
@@ -136,17 +158,46 @@
     {/if}
 
     {#if !oauthLoading && featureFlagsManager.value.passwordLogin}
-      <form {onsubmit} class="flex flex-col gap-4">
+      <!--
+        Password-manager friendly form:
+        - autocomplete=on on the form
+        - username field: type=email, name=username, autocomplete=username
+        - password field: name=password, autocomplete=current-password
+      -->
+      <form
+        {onsubmit}
+        class="flex flex-col gap-4"
+        method="post"
+        action="/auth/login"
+        autocomplete="on"
+        id="login-form"
+        name="login"
+      >
         {#if errorMessage}
           <Alert color="danger" title={errorMessage} closable />
         {/if}
 
         <Field label={$t('email')} required="indicator">
-          <Input id="email" name="email" type="email" autocomplete="email" bind:value={email} />
+          <Input
+            id="email"
+            name="username"
+            type="email"
+            autocomplete="username"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
+            inputmode="email"
+            bind:value={email}
+          />
         </Field>
 
         <Field label={$t('password')} required="indicator">
-          <PasswordInput id="password" bind:value={password} autocomplete="current-password" />
+          <PasswordInput
+            id="password"
+            name="password"
+            autocomplete="current-password"
+            bind:value={password}
+          />
         </Field>
 
         <Button type="submit" size="large" shape="round" fullWidth {loading} class="mt-6">{$t('to_login')}</Button>

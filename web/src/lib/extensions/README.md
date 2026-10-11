@@ -50,6 +50,8 @@ Import your registration module once from app startup (e.g. root layout) so it r
 | `asset.detail.before-tags` | Above Tags | `AssetDetailSection` |
 | `asset.detail.after-map` | After the map | `AssetDetailSection` |
 | `asset.viewer.below` | Under the main photo | `AssetDetailSection` |
+| `user.settings.visibility` | Account Settings show/hide | `UserSettingsVisibility` / `setUserSettingsVisibility()` |
+| `user.settings.section` | Extra Account Settings accordion | `UserSettingsSection` |
 
 ### Sidebar placement
 
@@ -80,6 +82,38 @@ const unregister = setAppBranding({
 
 `AppLogo` and `BrandingHead` honour the active branding contribution (highest `order`).
 
+### Account Settings visibility
+
+Core keys: `app-settings`, `account`, `user-usage-info`, `api-keys`, `authorized-devices`, `download-settings`, `feature`, `notifications`, `oauth`, `password`, `partner-sharing`, `user-pin-code-settings`, `user-purchase-settings`.
+
+```ts
+import { setUserSettingsVisibility, contribute } from '$lib/extensions';
+import MyPanel from './MyPanel.svelte';
+
+// Bare-minimum: only listed sections (everything else hidden, including Purchase)
+setUserSettingsVisibility({
+  id: 'my-product',
+  hideByDefault: true,
+  sections: { account: true, password: true, notifications: true },
+});
+
+// Or opt-out only: hide Purchase, keep the rest of stock Immich
+setUserSettingsVisibility({
+  id: 'hide-purchase',
+  sections: { 'user-purchase-settings': false },
+});
+
+// Extra accordion (e.g. Site settings link)
+contribute('user.settings.section', {
+  id: 'site-settings-link',
+  title: 'Site settings',
+  subtitle: 'Manage this site',
+  component: MyPanel,
+});
+```
+
+Highest-`order` visibility policy wins. No contribution ⇒ all core sections visible (stock Immich).
+
 ## Public API
 
 From `$lib/extensions` / `ui-extension-points.svelte.ts`:
@@ -88,6 +122,7 @@ From `$lib/extensions` / `ui-extension-points.svelte.ts`:
 - `contributions(point)` → sorted, `when`-filtered list
 - `detailSections(point, { asset, isOwner })` → same + `onBeforeRender`
 - `setAppBranding` / `activeBranding` / `brandingLogoSrc`
+- `setUserSettingsVisibility` / `activeUserSettingsVisibility` / `isUserSettingsSectionVisible` / `userSettingsSections`
 
 ## Optional demos (this fork / local only)
 

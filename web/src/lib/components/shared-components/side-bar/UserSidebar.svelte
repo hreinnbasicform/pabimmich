@@ -47,13 +47,23 @@
     if (featureFlagsManager.value.map) {
       ids.push('map');
     }
-    if (authManager.preferences.people.enabled && authManager.preferences.people.sidebarWeb) {
+    // CatLink product: "Cats" nav (tag-based) replaces face People when active.
+    // Avoid two similar entries for owners reviewing community cats.
+    const catsReplacesPeople = contributions('sidebar.nav').some((item) => item.id === 'cats');
+    if (
+      !catsReplacesPeople &&
+      authManager.preferences.people.enabled &&
+      authManager.preferences.people.sidebarWeb
+    ) {
       ids.push('people');
     }
     if (authManager.preferences.sharedLinks.enabled && authManager.preferences.sharedLinks.sidebarWeb) {
       ids.push('shared-links');
     }
-    ids.push('sharing', 'library', 'favorites', 'albums');
+    // PAB: omit core "sharing" (partner hub). Each PAB tenant is a single Immich
+    // identity — partner sharing has no counterpart. Access is via PAB r/i/m/d
+    // folder permissions. Public shared-links remain available above.
+    ids.push('library', 'favorites', 'albums');
     if (authManager.preferences.tags.enabled && authManager.preferences.tags.sidebarWeb) {
       ids.push('tags');
     }

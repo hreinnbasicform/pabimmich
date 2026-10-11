@@ -1,0 +1,13 @@
+# PAB fork: custom image + host-mounted web tree so UI can update without full rebuilds.
+#
+#   /opt/pab/immich/www          →  /build/www     (SvelteKit build output)
+#   /opt/pab/immich/www/pab-ui   →  /pab-ui/*      (external extension scripts)
+#
+# Iterate extensions:  ./scripts/deploy-pab-ui.sh
+# Iterate full web:    ./scripts/deploy-immich-web.sh
+# Roll back image: delete this file and `docker compose up -d immich-server`.
+services:
+  immich-server:
+    image: pab/immich-server:v3.1.0-pab-amd64
+    volumes:
+      - /opt/pab/immich/www:/build/www:ro
